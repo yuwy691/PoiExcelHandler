@@ -15,7 +15,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
  * @create 2019/1/8
  * @since 1.0.0
  */
-public class PoiHandler {
+public abstract class PoiHandler {
   /**
    * 将excel每一行的数据转换为java对象
    *

@@ -1,7 +1,6 @@
 package com.yu;
 
 import com.yu.handler.PoiExportHandler;
-import com.yu.handler.PoiHandler;
 import com.yu.handler.PoiImportHandler;
 import com.yu.model.ExportVo;
 import com.yu.model.ImportVo;
@@ -40,12 +39,15 @@ public class HandlerTest {
 
       dtoList.add(vo);
     }
-    PoiHandler baseHandler = new PoiHandler();
+
     PoiExportHandler handler = new PoiExportHandler();
 
-    Workbook wb = baseHandler.getWorkbook();
+    Workbook wb = handler.getWorkbook();
     Sheet sheet = wb.createSheet("test");
-    handler.exportExcel(null, null, sheet, dtoList, headers);
+
+    handler.createHeader(null, sheet, headers, true);
+    handler.fillContent(null, sheet, dtoList);
+    // handler.exportExcel(null, null, sheet, dtoList, headers);
 
     File file = new File(path);
     OutputStream os = new FileOutputStream(file);

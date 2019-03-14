@@ -18,6 +18,11 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
  * @since 1.0.0
  */
 public class PoiExportHandler<T> extends PoiHandler {
+
+  private static final int FREEZE_COLUMN_SPLIT = 0;
+
+  private static final int FREEZE_ROW_SPLIT = 1;
+
   /**
    * 导出excel
    *
@@ -36,54 +41,9 @@ public class PoiExportHandler<T> extends PoiHandler {
       String[] headers)
       throws Exception {
     // 设置表头
-    setHeaders(headerStyle, sheet, headers);
+    createHeader(headerStyle, sheet, headers, false);
     // 填充内容
     fillContent(dataStyle, sheet, dtoList);
-  }
-
-  /** 设置表头 */
-  private void setHeaders(XSSFCellStyle headerStyle, Sheet sheet, String[] headers)
-      throws Exception {
-    // 生成表头
-    Row row = sheet.createRow(0);
-
-    // 填写表头
-    for (int i = 0; i < headers.length; i++) {
-      Cell cell = row.createCell(i);
-      if (headerStyle != null) {
-        cell.setCellStyle(headerStyle);
-      }
-      cell.setCellValue(headers[i]);
-    }
-  }
-
-  /**
-   * 填充数据
-   *
-   * @param sheet
-   * @param dtoList
-   */
-  private void fillContent(XSSFCellStyle dataStyle, Sheet sheet, List<T> dtoList) throws Exception {
-    Iterator<T> recordIter = dtoList.iterator();
-    while (recordIter.hasNext()) {
-      // 获取最后一行索引值，在该行后添加数据
-      int rowIndex = sheet.getPhysicalNumberOfRows();
-      Row row = sheet.createRow(rowIndex);
-
-      // 获取实例类所包含的方法名称
-      T record = recordIter.next();
-      Field[] fields = record.getClass().getDeclaredFields();
-
-      // 顺序写入excel，实体类中的字段和表格标题一一对应
-      for (int i = 0; i < fields.length; i++) {
-        Cell cell = row.createCell(i);
-        if (dataStyle != null) {
-          cell.setCellStyle(dataStyle);
-        }
-        // 获取属性名称，填充到单元格中
-        cell.setCellValue(getFieldValue(getMethodName(fields[i]), record));
-      }
-    }
   }
 
   /**
@@ -113,5 +73,65 @@ public class PoiExportHandler<T> extends PoiHandler {
       e.printStackTrace();
     }
     return fieldValue;
+  }
+
+  /**
+   * 创建表头
+   *
+   * @param headerStyle 表头样式
+   * @param sheet sheet页
+   * @param headers 表头字段
+   * @param freeze 是否冻结表头
+   * @throws Exception
+   */
+  public void createHeader(XSSFCellStyle headerStyle, Sheet sheet, String[] headers, boolean freeze)
+      throws Exception {
+    // 生成表头
+    Row row = sheet.createRow(0);
+
+    // 是否固定表头
+    if (freeze) {
+      sheet.createFreezePane(FREEZE_COLUMN_SPLIT, FREEZE_ROW_SPLIT);
+    }
+
+    // 填写表头
+    for (int i = 0; i < headers.length; i++) {
+      Cell cell = row.createCell(i);
+      if (headerStyle != null) {
+        cell.setCellStyle(headerStyle);
+      }
+      cell.setCellValue(headers[i]);
+    }
+  }
+
+  /**
+   * 填充数据
+   *
+   * @param dataStyle 数据样式
+   * @param sheet sheet页
+   * @param dtoList 填充的数据
+   * @throws Exception
+   */
+  public void fillContent(XSSFCellStyle dataStyle, Sheet sheet, List<T> dtoList) throws Exception {
+    Iterator<T> recordIter = dtoList.iterator();
+    while (recordIter.hasNext()) {
+      // 获取最后一行索引值，在该行后添加数据
+      int rowIndex = sheet.getPhysicalNumberOfRows();
+      Row row = sheet.createRow(rowIndex);
+
+      // 获取实例类所包含的方法名称
+      T record = recordIter.next();
+      Field[] fields = record.getClass().getDeclaredFields();
+
+      // 顺序写入excel，实体类中的字段和表格标题一一对应
+      for (int i = 0; i < fields.length; i++) {
+        Cell cell = row.createCell(i);
+        if (dataStyle != null) {
+          cell.setCellStyle(dataStyle);
+        }
+        // 获取属性名称，填充到单元格中
+        cell.setCellValue(getFieldValue(getMethodName(fields[i]), record));
+      }
+    }
   }
 }
