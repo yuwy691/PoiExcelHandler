@@ -1,7 +1,7 @@
 package com.yu;
 
-import com.yu.handler.PoiExportHandler;
-import com.yu.handler.PoiImportHandler;
+import com.yu.handlers.ExcelHandler;
+import com.yu.handlers.impl.ExcelHandlerImpl;
 import com.yu.model.ExportVo;
 import com.yu.model.ImportVo;
 import java.io.File;
@@ -10,9 +10,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.Test;
 
@@ -29,42 +28,35 @@ public class HandlerTest {
   public void testExport() throws Exception {
     // 导出到本地磁盘
     String path = "D:/test.xlsx";
-    String[] headers = {"序号", "名称", "描述"};
-    List<ExportVo> dtoList = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      ExportVo vo = new ExportVo();
-      vo.setOrderNo(String.valueOf(i + 1));
-      vo.setName("name" + i);
-      vo.setDesc("desc" + i);
 
+    List<ExportVo> dtoList = new ArrayList<>();
+    for (int i = 0; i < 100; i++) {
+      ExportVo vo = new ExportVo();
+      vo.setOrderNo(String.valueOf(i+1));
+      vo.setName("name" + (i + 1));
+      vo.setDesc("desc" + (i + 1));
+      vo.setExportNow(Calendar.getInstance().toString());
       dtoList.add(vo);
     }
-
-    PoiExportHandler handler = new PoiExportHandler();
-
-    Workbook wb = handler.getWorkbook();
-    Sheet sheet = wb.createSheet("test");
-
-    handler.createHeader(null, sheet, headers, true);
-    handler.fillContent(null, sheet, dtoList);
-    // handler.exportExcel(null, null, sheet, dtoList, headers);
+    ExcelHandler handler = new ExcelHandlerImpl();
+    Workbook wb = handler.exportXLSX("name", true, false, dtoList);
 
     File file = new File(path);
     OutputStream os = new FileOutputStream(file);
-
     wb.write(os);
   }
 
   @Test
   public void testImport() throws Exception {
-    PoiImportHandler handler = new PoiImportHandler();
+    ExcelHandler handler = new ExcelHandlerImpl();
 
     String path = "D:/test.xlsx";
     File file = new File(path);
     InputStream is = new FileInputStream(file);
-    List<Map<String, Object>> list = handler.importExcel(is, new ImportVo(), "xlsx");
-    for (Map<String, Object> map : list) {
-      System.out.print(map.get("name"));
+    List<ImportVo> list = handler.saxImport(file, "name", ImportVo.class, true);
+
+    for (ImportVo item : list) {
+      System.out.println(item.getDesc());
     }
   }
 }

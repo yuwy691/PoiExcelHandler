@@ -1,5 +1,7 @@
 package com.yu.model;
 
+import com.yu.annotations.Header;
+
 /**
  * @Description 导出测试实体类
  *
@@ -8,19 +10,17 @@ package com.yu.model;
  * @since 1.0.0
  */
 public class ExportVo {
+  @Header("序号")
   private String orderNo;
 
+  @Header("名称")
   private String name;
 
+  @Header("描述")
   private String desc;
 
-  public String getOrderNo() {
-    return orderNo;
-  }
-
-  public void setOrderNo(String orderNo) {
-    this.orderNo = orderNo;
-  }
+  @Header("时间")
+  private String exportNow;
 
   public String getName() {
     return name;
@@ -36,5 +36,21 @@ public class ExportVo {
 
   public void setDesc(String desc) {
     this.desc = desc;
+  }
+
+  public String getOrderNo() {
+    return orderNo;
+  }
+
+  public void setOrderNo(String orderNo) {
+    this.orderNo = orderNo;
+  }
+
+  public String getExportNow() {
+    return exportNow;
+  }
+
+  public void setExportNow(String exportNow) {
+    this.exportNow = exportNow;
   }
 }

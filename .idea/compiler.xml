@@ -6,10 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="excel-handler" />
         <module name="PoiExcelHandler" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="excel-handler" target="1.7" />
       <module name="PoiExcelHandler" target="1.7" />
     </bytecodeTargetLevel>
   </component>
