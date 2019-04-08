@@ -2,6 +2,7 @@ package com.yu.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.xml.sax.Attributes;
@@ -35,19 +36,16 @@ public class SaxExcelParse extends DefaultHandler {
   private List<List<String>> rows;
   /** excel对应每一行的值 */
   private List<String> row;
-  /** 单元格坐标 */
-  private String key;
+  /** 当前单元格坐标 */
+  private String currentKey;
+  /** 上一个单元格坐标 */
+  private String lastKey;
   /** 是否有表头 */
   private boolean hasHeader = true;
-  /**
-   * 是否使用sst索引
-   */
+  /** 是否使用sst索引 */
   private boolean sstIndex = false;
-  /**
-   * 共享字符串
-   */
+  /** 共享字符串 */
   private SharedStringsTable sst;
-
 
   /**
    * 构造器
@@ -72,7 +70,7 @@ public class SaxExcelParse extends DefaultHandler {
       } else {
         this.sstIndex = false;
       }
-      this.key = attributes.getValue(XML_R_ATTRIBUTE);
+      this.currentKey = attributes.getValue(XML_R_ATTRIBUTE);
     }
     // 清空内容
     this.lastContents = "";
@@ -94,12 +92,16 @@ public class SaxExcelParse extends DefaultHandler {
   public void endElement(String uri, String localName, String name) throws SAXException {
     getContentsBySSTIndex();
 
-    if ("v".equals(name) || "t".equals(name)) {
-      String value = lastContents.trim();
-      value = value.equals("") ? " " : value;
-      this.row.add(value);
-    } else if (XML_C_TAG.equals(name)) {
+    if (XML_C_TAG.equals(name)) {
+      // 补全空单元格，再处理当前单元格
+      if (currentAndLastDiff() > 1) {
+        for (int i = 1; i < currentAndLastDiff(); i++) {
+          this.row.add("");
+        }
+      }
       this.row.add(this.lastContents);
+      /** 换行设置上一单元格坐标 */
+      this.lastKey = this.currentKey;
     } else if (XML_ROW_TAG.equals(name)) {
       if (!ignoreFirstRow()) {
         List<String> item = new ArrayList<>(this.row);
@@ -107,6 +109,7 @@ public class SaxExcelParse extends DefaultHandler {
       }
       /** 清空存储集 * */
       this.row.clear();
+      this.lastKey = "";
     }
   }
 
@@ -122,11 +125,26 @@ public class SaxExcelParse extends DefaultHandler {
   }
 
   private boolean ignoreFirstRow() {
-    String nowRow = this.key.replaceAll(this.key.replaceAll("\\d+", ""), "");
+    String nowRow = this.currentKey.replaceAll(this.currentKey.replaceAll("\\d+", ""), "");
     if (this.hasHeader && FIRST_ROW.equals(nowRow)) {
       return true;
     }
     return false;
+  }
+
+  private int currentAndLastDiff() {
+    if (StringUtils.isNotBlank(this.lastKey)) {
+      return sumStrAscii(this.currentKey) - sumStrAscii(this.lastKey);
+    }
+    return 0;
+  }
+
+  private int sumStrAscii(String str) {
+    int sum = 0;
+    for (int i = 0; i < str.toCharArray().length; i++) {
+      sum += str.toCharArray()[i];
+    }
+    return sum;
   }
 
   public List<List<String>> getRows() {
